@@ -1,0 +1,25 @@
+{
+  "name": "private-transfer-vault",
+  "version": "1.0.0",
+  "description": "A commitment-based private token transfer system for Blackbox",
+  "main": "demo-complete-flow.js",
+  "scripts": {
+    "start:node": "hardhat node",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "node scripts/deploy.js",
+    "demo:user": "node demo.js",
+    "demo:relayer": "node relayer.js",
+    "demo:bonus": "node demo-bonus-features.js"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.24.1"
+  },
+  "dependencies": {
+    "ethers": "^5.7.2"
+  },
+  "keywords": ["privacy", "blockchain", "ethereum", "commitments", "relay"],
+  "author": "",
+  "license": "MIT"
+}
