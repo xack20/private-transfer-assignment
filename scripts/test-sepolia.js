@@ -33,9 +33,9 @@ async function main() {
   const vault = await PrivateTransferVault.attach(contractAddress);
   
   // Create a mock transfer
-  const sender = signerAddress;
-  const recipient = "0x24776C87d7DF39D3Bb2f4ACcAbE8640B650910DB"; // Example recipient
-  const amount = hre.ethers.utils.parseEther("0.001");
+  const sender = "0x24776C87d7DF39D3Bb2f4ACcAbE8640B650910DB"; // Example sender
+  const recipient = "0xe827D360eFC5277673e0efF7A8cFC69504a89Bc2"; // Example recipient
+  const amount = hre.ethers.utils.parseEther("0.015");
   const timestamp = Math.floor(Date.now() / 1000);
   
   console.log("\nCreating private transfer:");
