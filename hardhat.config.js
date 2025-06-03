@@ -1,4 +1,6 @@
-require("@nomicfoundation/hardhat-toolbox");
+require("@nomiclabs/hardhat-ethers");
+require("@nomiclabs/hardhat-etherscan");
+require("dotenv").config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -13,10 +15,11 @@ module.exports = {
       url: "http://127.0.0.1:8545",
       chainId: 1337
     },
-    // Example testnet configuration (you would add your own provider API key)
+    // Sepolia testnet configuration
     sepolia: {
-      url: "https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
+      url: `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      gasMultiplier: 1.2
     }
   },
   // For gas reporting in tests

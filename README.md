@@ -98,6 +98,42 @@ npm run demo:bonus
 node demo-bonus-features.js
 ```
 
+## Sepolia Testnet Deployment
+
+To deploy and test on Sepolia testnet, follow these steps:
+
+1. Set up environment variables:
+   - Copy `.env.example` to `.env`
+   - Fill in the following:
+     ```
+     INFURA_API_KEY=your_infura_api_key_here
+     PRIVATE_KEY=your_private_key_here_without_0x_prefix
+     ETHERSCAN_API_KEY=your_etherscan_api_key_here
+     ```
+
+2. Make sure your wallet has Sepolia ETH:
+   - Request from [Sepolia faucet](https://sepoliafaucet.com/)
+
+3. Deploy to Sepolia:
+   ```bash
+   npm run deploy:sepolia
+   ```
+
+4. Test the deployed contract on Sepolia:
+   ```bash
+   npm run test:sepolia
+   ```
+
+5. View on Etherscan:
+   - After deployment, the console will provide Etherscan links
+   - Contract: `https://sepolia.etherscan.io/address/YOUR_CONTRACT_ADDRESS`
+   - Transactions: Check events under the "Events" tab in Etherscan
+   
+6. Verify the contract on Etherscan (if needed manually):
+   ```bash
+   npm run verify:sepolia YOUR_CONTRACT_ADDRESS
+   ```
+
 ## Privacy Features
 
 - **Commitment-based Privacy**: Only cryptographic commitments are stored on-chain
