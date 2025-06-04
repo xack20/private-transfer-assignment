@@ -1,20 +1,49 @@
 // File: scripts/bonus-features-sepolia.js
+/**
+ * PrivateTransferVault - Advanced Privacy Features Demo on Sepolia
+ * ==============================================================
+ * 
+ * PURPOSE:
+ * This file demonstrates advanced privacy features for the Private Transfer Vault
+ * including TEE remote attestation and view key mechanisms. It executes a real
+ * transaction on Sepolia testnet that combines these privacy-enhancing technologies.
+ * 
+ * ADVANCED PRIVACY FEATURES:
+ * 1. TEE (Trusted Execution Environment) Simulation
+ *    - Remote attestation of secure enclaves
+ *    - Enclave identity verification
+ *    - Secure data processing simulation
+ * 
+ * 2. View Key Mechanism
+ *    - Selective disclosure of transaction data
+ *    - Encrypted storage of transaction details
+ *    - Controlled access to decrypted information
+ *    - Key expiration for time-limited access
+ * 
+ * PRIVACY ARCHITECTURE:
+ * - Transaction details remain encrypted and off-chain
+ * - Only commitment hashes are stored on the Sepolia blockchain
+ * - View keys provide controlled access to transaction details
+ * - Simulated TEE ensures secure data handling
+ * - All cryptographic operations happen locally, not on-chain
+ */
 const { ethers } = require("hardhat");
-const crypto = require("crypto");
+const crypto = require("crypto"); // Used for cryptographic operations
 const fs = require("fs");
 const path = require("path");
-require("dotenv").config();
+require("dotenv").config(); // Load environment variables
 
 /**
- * BONUS: Remote Attestation & View Key Implementation on Sepolia
- * This file demonstrates the concepts of:
- * 1. Remote attestation of a TEE (Trusted Execution Environment)
- * 2. View key implementation for controlled access to decrypted data
+ * Helper function to get the deployed contract address
  * 
- * All of this happens with a real transaction on Sepolia testnet
+ * TECHNICAL DETAILS:
+ * - Reads from the .sepolia-contract-address file created during deployment
+ * - Ensures consistent contract addressing across scripts
+ * - Provides clear error messaging if the file is missing
+ * 
+ * @returns {string} The contract address
+ * @throws {Error} If the contract address file doesn't exist
  */
-
-// Get the deployed contract address
 function getDeployedContractAddress() {
   try {
     return fs.readFileSync(
@@ -28,139 +57,327 @@ function getDeployedContractAddress() {
 
 // ========= SIMULATED TEE FUNCTIONS =========
 
-// Mock TEE identity
+/**
+ * TRUSTED EXECUTION ENVIRONMENT (TEE) SIMULATION
+ * =============================================
+ * 
+ * PURPOSE:
+ * In a production privacy system, TEEs provide hardware-level isolation
+ * for processing sensitive data. This simulation demonstrates how a real
+ * TEE would generate attestation reports to prove its secure state.
+ * 
+ * REAL-WORLD EQUIVALENT:
+ * - Intel SGX, AMD SEV, ARM TrustZone, or AWS Nitro Enclaves
+ * - Remote attestation to verify enclave integrity
+ * - Secure key management within isolated memory
+ * - Protection against privileged attackers (even OS-level)
+ */
+
+/**
+ * Mock TEE identity with simulated security parameters
+ * 
+ * COMPONENTS:
+ * - enclaveId: Unique identifier for this simulated secure enclave
+ * - teeType: Type of TEE (e.g., Intel SGX, AMD SEV)
+ * - mrEnclave: Measurement Register for the enclave code (hash of enclave code/data)
+ * - mrSigner: Measurement Register for the enclave signer (who signed the enclave)
+ * - privateKey: Private key that would be protected inside the TEE
+ * 
+ * SECURITY SIGNIFICANCE:
+ * In a real TEE, these values would be hardware-protected and used to
+ * prove that code is running in a genuine, unmodified secure environment
+ */
 const mockTee = {
-  enclaveId: "0x" + crypto.randomBytes(16).toString("hex"),
-  teeType: "INTEL_SGX",
-  mrEnclave: "0x" + crypto.randomBytes(32).toString("hex"),
-  mrSigner: "0x" + crypto.randomBytes(32).toString("hex"),
-  privateKey: crypto.randomBytes(32)
+  enclaveId: "0x" + crypto.randomBytes(16).toString("hex"),  // Simulates a unique enclave ID
+  teeType: "INTEL_SGX",                                      // Simulates Intel SGX as the TEE type
+  mrEnclave: "0x" + crypto.randomBytes(32).toString("hex"),  // Simulates measurement of code/data
+  mrSigner: "0x" + crypto.randomBytes(32).toString("hex"),   // Simulates identity of enclave signer
+  privateKey: crypto.randomBytes(32)                         // Simulates a TEE-protected private key
 };
 
-// Generate mock attestation report
+/**
+ * Generate a simulated attestation report for the TEE
+ * 
+ * FUNCTION PURPOSE:
+ * Remote attestation allows external verification that code is running
+ * in a genuine TEE with the expected code/configuration. This function
+ * simulates this critical security process.
+ * 
+ * IN PRODUCTION:
+ * - Would involve actual hardware TEE generating cryptographic proof
+ * - Would include a genuine signature from the TEE manufacturer (Intel, AMD, etc.)
+ * - Would be verified against a public attestation service
+ * 
+ * @returns {Object} Simulated attestation report with signature
+ */
 function generateAttestationReport() {
-  // In a real implementation this would be generated by the TEE platform
+  // Create a report containing TEE identity and security attributes
+  // In a real implementation this would be generated by the TEE hardware
   const report = {
-    enclaveId: mockTee.enclaveId,
-    teeType: mockTee.teeType,
-    mrEnclave: mockTee.mrEnclave,
-    mrSigner: mockTee.mrSigner,
-    timestamp: Date.now(),
-    securityVersion: "2.0",
+    enclaveId: mockTee.enclaveId,      // Unique identifier for this TEE instance
+    teeType: mockTee.teeType,          // Type of TEE technology
+    mrEnclave: mockTee.mrEnclave,      // Hash of the code running in the TEE
+    mrSigner: mockTee.mrSigner,        // Identity of who signed the enclave
+    timestamp: Date.now(),             // When the attestation was generated
+    securityVersion: "2.0",            // Security patch level of the TEE
     attributes: {
-      debug: false,
-      isInitializer: true,
-      mode64bit: true
+      debug: false,                    // Debug mode disabled (would be insecure if true)
+      isInitializer: true,             // This TEE initialized the secure environment
+      mode64bit: true                  // Operating in 64-bit mode
     }
   };
   
-  // Simulate a signature (in real implementation this would be a proper cryptographic signature)
+  // Generate a simulated signature for the attestation report
+  // In production, this would be a cryptographic signature from the TEE itself
   const reportJson = JSON.stringify(report);
   const reportHash = crypto.createHash('sha256').update(reportJson).digest('hex');
   const mockSignature = crypto.createHash('sha256').update(reportHash + mockTee.privateKey.toString('hex')).digest('hex');
   
+  // Return both the report and its signature
   return {
-    report,
-    signature: "0x" + mockSignature
+    report,                           // The attestation report content
+    signature: "0x" + mockSignature   // The signature verifying the report's authenticity
   };
 }
 
 // ========= VIEW KEY IMPLEMENTATION =========
 
-// Generate a view key for a specific user
+/**
+ * VIEW KEY MECHANISM
+ * =================
+ * 
+ * PURPOSE:
+ * View keys enable selective disclosure of private transaction details.
+ * This allows specific authorized parties (e.g., auditors, regulators)
+ * to access transaction information while keeping it private from others.
+ * 
+ * PRIVACY ARCHITECTURE:
+ * 1. Transaction details are encrypted with view keys
+ * 2. Only commitment hashes are stored on the blockchain
+ * 3. Authorized parties with valid view keys can decrypt transaction details
+ * 4. View keys have expiration times for temporal access control
+ * 5. In production, view keys would be managed within a TEE
+ */
+
+/**
+ * Generate a view key for a specific user address
+ * 
+ * FUNCTION PURPOSE:
+ * Creates a cryptographic key that grants selective visibility to transaction data.
+ * This is the core mechanism for authorized disclosure of private transactions.
+ * 
+ * SECURITY FEATURES:
+ * - Unique key per user address
+ * - Time-limited validity (24-hour expiration)
+ * - In production, would be derived securely within a TEE
+ * - Could implement multi-party authorization for sensitive operations
+ * 
+ * @param {string} userAddress The Ethereum address of the authorized user
+ * @returns {Object} View key object with user address, key, and expiry time
+ */
 function generateViewKey(userAddress) {
-  // In real implementation, this would be derived in the TEE
+  // Generate a random 32-byte key
+  // In production, this would be derived securely within a TEE
   // and would likely involve some form of key agreement protocol
   const viewKeyBytes = crypto.randomBytes(32);
   const viewKey = "0x" + viewKeyBytes.toString("hex");
   
+  // Return view key object with metadata
   return {
-    userAddress,
-    viewKey,
-    expiry: Date.now() + 86400000 // 24 hours
+    userAddress,                    // Who this key belongs to
+    viewKey,                        // The actual cryptographic key
+    expiry: Date.now() + 86400000   // 24-hour expiration (in milliseconds)
   };
 }
 
-// Simple symmetric encryption simulation (using XOR for demonstration)
+/**
+ * Encrypt transaction data using a view key
+ * 
+ * FUNCTION PURPOSE:
+ * Secures private transaction data so only those with the correct view key
+ * can access it. This is essential for maintaining privacy while allowing
+ * selective disclosure.
+ * 
+ * TECHNICAL NOTES:
+ * - Uses a simple XOR encryption for demonstration purposes
+ * - In production, would use stronger encryption (e.g., AES-GCM)
+ * - In production, encryption would occur inside a TEE
+ * 
+ * PRIVACY GUARANTEES:
+ * - Data cannot be decrypted without the correct view key
+ * - Even with the encrypted data and blockchain access, transaction details remain private
+ * 
+ * @param {Object|string} data The data to encrypt (typically transaction details)
+ * @param {string} viewKey The view key to encrypt with
+ * @returns {string} Base64-encoded encrypted data
+ */
 function encryptData(data, viewKey) {
-  // Convert data to string if it's not already
+  // Convert data to string if it's an object
   const dataStr = typeof data === 'string' ? data : JSON.stringify(data);
-  // Convert to buffer
+  
+  // Convert to buffer for binary operations
   const dataBuffer = Buffer.from(dataStr);
-  // Get key bytes (remove 0x prefix)
+  
+  // Get key bytes (remove 0x prefix from hex string)
   const keyBytes = Buffer.from(viewKey.slice(2), 'hex');
   
-  // Simple XOR encryption (for demonstration only - not secure!)
+  // Simple XOR encryption (for demonstration only - not secure for production!)
+  // In a real implementation, this would use a strong algorithm like AES-GCM
   const encrypted = Buffer.alloc(dataBuffer.length);
   for (let i = 0; i < dataBuffer.length; i++) {
     encrypted[i] = dataBuffer[i] ^ keyBytes[i % keyBytes.length];
   }
   
+  // Return as base64 string for easier handling
   return encrypted.toString('base64');
 }
 
-// Simple decryption using the view key
+/**
+ * Decrypt data using a view key
+ * 
+ * FUNCTION PURPOSE:
+ * Reverses the encryption process to reveal the original transaction data,
+ * but only when provided with the correct view key.
+ * 
+ * SECURITY FEATURES:
+ * - Only works with the exact view key used for encryption
+ * - Returns parsed JSON for structured data handling
+ * - Includes error handling for invalid decryption attempts
+ * 
+ * @param {string} encryptedData Base64-encoded encrypted data
+ * @param {string} viewKey The view key to decrypt with
+ * @returns {Object|null} Decrypted data as an object, or null if decryption fails
+ */
 function decryptData(encryptedData, viewKey) {
   try {
-    // Get encrypted data as buffer
+    // Convert base64-encoded encrypted data to buffer
     const dataBuffer = Buffer.from(encryptedData, 'base64');
-    // Get key bytes (remove 0x prefix)
+    
+    // Get key bytes (remove 0x prefix from hex string)
     const keyBytes = Buffer.from(viewKey.slice(2), 'hex');
     
-    // Simple XOR decryption
+    // Perform XOR decryption (matching the encryption algorithm)
+    // In production, this would use a strong algorithm like AES-GCM
     const decrypted = Buffer.alloc(dataBuffer.length);
     for (let i = 0; i < dataBuffer.length; i++) {
       decrypted[i] = dataBuffer[i] ^ keyBytes[i % keyBytes.length];
     }
     
-    // Parse as JSON if possible
+    // Parse the decrypted data as JSON
+    // This assumes the original data was JSON-structured
     return JSON.parse(decrypted.toString());
   } catch (error) {
+    // Handle decryption errors (e.g., wrong key, corrupted data)
     console.error("Decryption failed:", error.message);
     return null;
   }
 }
 
-// Simulate decryption of private data with view key check
+/**
+ * Authenticate and decrypt private data with view key verification
+ * 
+ * FUNCTION PURPOSE:
+ * This is the main access control mechanism for selective disclosure.
+ * It verifies the view key's validity and expiration before allowing decryption.
+ * 
+ * SECURITY CHECKS:
+ * 1. View key authentication (must match the authorized key)
+ * 2. Expiration validation (must not be expired)
+ * 3. Decryption with audit trail (logs when/how data was accessed)
+ * 
+ * ACCESS CONTROL MODEL:
+ * - In production, this would represent how regulators or auditors gain access
+ * - Provides temporal bounds on data access
+ * - Creates accountability through access logging
+ * 
+ * @param {string} encryptedPayload The encrypted transaction data
+ * @param {string} providedViewKey The view key provided for access
+ * @param {Object} userViewKey The authorized view key object
+ * @returns {Object} Decrypted data with access metadata
+ * @throws {Error} If the view key is invalid or expired
+ */
 function decryptWithViewKey(encryptedPayload, providedViewKey, userViewKey) {
-  // Check if view key matches and is valid
+  // SECURITY CHECK 1: Authenticate the view key
+  // Verify that the provided key matches the authorized key
   if (providedViewKey !== userViewKey.viewKey) {
     throw new Error("Invalid view key");
   }
   
+  // SECURITY CHECK 2: Validate the expiration time
+  // Ensure the view key hasn't expired (time-based access control)
   if (Date.now() > userViewKey.expiry) {
     throw new Error("View key has expired");
   }
   
-  // Decrypt the payload with the provided view key
+  // SECURITY CHECK PASSED: Decrypt the data
+  // Only proceeds if both security checks pass
   const decryptedData = decryptData(encryptedPayload, providedViewKey);
   
+  // Return the decrypted data with audit information
+  // This provides a record of when and how the data was accessed
   return {
-    decryptedData,
-    viewKeyUsed: providedViewKey,
-    decryptedAt: new Date().toISOString()
+    decryptedData,                     // The revealed transaction details
+    viewKeyUsed: providedViewKey,      // Which key was used (for audit trail)
+    decryptedAt: new Date().toISOString() // When access occurred (for audit trail)
   };
 }
 
 // ========= DEMO ON SEPOLIA =========
 
+/**
+ * Main demonstration function for advanced privacy features on Sepolia
+ * 
+ * EXECUTION FLOW:
+ * 1. Connect to the deployed contract on Sepolia
+ * 2. Generate a TEE attestation report
+ * 3. Create private transaction details
+ * 4. Generate a view key for selective disclosure
+ * 5. Encrypt the transaction data with the view key
+ * 6. Submit only the commitment hash to the blockchain
+ * 7. Demonstrate view key access control (successful and failed)
+ * 
+ * PRIVACY MODEL DEMONSTRATED:
+ * - Transaction details never appear on-chain
+ * - Blockchain only records cryptographic commitments
+ * - View keys control who can see transaction details
+ * - TEE attestation ensures secure processing environment
+ */
 async function main() {
   console.log("==== BONUS: REMOTE ATTESTATION & VIEW KEY DEMO ON SEPOLIA ====\n");
   
-  // Get contract address
+  /**
+   * Get the deployed contract address
+   * Either from environment variable or from deployment file
+   */
   const contractAddress = process.env.CONTRACT_ADDRESS || getDeployedContractAddress();
   console.log(`Using contract at: ${contractAddress}`);
   
-  // Get signer 
+  /**
+   * Get the signer account that will submit the transaction
+   * This represents the relayer in a privacy-focused architecture
+   * In production, this would be a separate service to enhance privacy
+   */
   const [signer] = await ethers.getSigners();
   const signerAddress = await signer.getAddress();
   console.log(`Connected with address: ${signerAddress}\n`);
   
-  // Connect to the deployed contract
+  /**
+   * Connect to the deployed contract instance on Sepolia
+   * Uses the contract ABI from compilation artifacts
+   */
   const PrivateTransferVault = await ethers.getContractFactory("PrivateTransferVault");
   const vault = PrivateTransferVault.attach(contractAddress);
   
-  // 1. Generate and verify attestation report
+  // ========== STEP 1: TEE REMOTE ATTESTATION ==========
+  
+  /**
+   * Generate a simulated TEE attestation report
+   * 
+   * PRIVACY & SECURITY PURPOSE:
+   * In production, remote attestation would verify that transaction processing
+   * occurs in a genuine, unmodified secure enclave. This provides assurance
+   * that private data is handled properly even from the service operator.
+   */
   console.log("1️⃣ GENERATING TEE REMOTE ATTESTATION");
   const attestation = generateAttestationReport();
   console.log("   Attestation report generated:");
@@ -169,38 +386,99 @@ async function main() {
   console.log(`   - Security Version: ${attestation.report.securityVersion}`);
   console.log(`   - Signature: ${attestation.signature.substring(0, 30)}...`);
   
-  // Simulate verification of attestation
+  /**
+   * Simulate verification of the TEE attestation
+   * In production, this would verify against the TEE manufacturer's attestation service
+   */
   console.log("\n   Verifying TEE attestation...");
   console.log("   ✅ TEE attestation verified (simulated)");
   
-  // 2. Create a transfer with real data
+  // ========== STEP 2: CREATE PRIVATE TRANSACTION ==========
+  
+  /**
+   * Define the transaction details that will remain private
+   * 
+   * PRIVACY NOTE: These details are NEVER sent to the blockchain
+   * In a real system, these details would be:
+   * 1. Received via a secure channel
+   * 2. Processed inside the attested TEE
+   * 3. Never exposed outside the secure environment
+   */
   console.log("\n2️⃣ CREATING PRIVATE TRANSFER ON SEPOLIA");
   const transferPayload = {
     sender: "0x24776C87d7DF39D3Bb2f4ACcAbE8640B650910DB", // Example sender
     recipient: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", // Example recipient
-    amount: ethers.utils.parseEther("0.001").toString(),
-    timestamp: Date.now()
+    amount: ethers.utils.parseEther("0.001").toString(),     // Amount in wei
+    timestamp: Date.now()                                    // Current timestamp for uniqueness
   };
+  
+  // Log the private transaction details
+  // In production, this would only happen inside the TEE
   console.log(`   Transfer Details:`);
   console.log(`   - From: ${transferPayload.sender}`);
   console.log(`   - To: ${transferPayload.recipient}`);
   console.log(`   - Amount: ${ethers.utils.formatEther(transferPayload.amount)} ETH`);
   
-  // 3. Generate view key for the sender
+  // ========== STEP 3: GENERATE VIEW KEY ==========
+  
+  /**
+   * Generate a view key for selective disclosure
+   * 
+   * PRIVACY ARCHITECTURE:
+   * View keys enable the selective disclosure pattern which allows:
+   * - Users to share transaction details with specific parties (e.g., auditors)
+   * - Time-limited access to transaction information
+   * - Granular control over who can see which transactions
+   * 
+   * In production, this would be done inside a TEE with secure key management
+   */
   console.log("\n3️⃣ GENERATING VIEW KEY FOR USER");
   const userViewKey = generateViewKey(signerAddress);
   console.log(`   View key generated for: ${userViewKey.userAddress}`);
-  console.log(`   View key: ${userViewKey.viewKey.substring(0, 10)}...`); 
+  console.log(`   View key: ${userViewKey.viewKey.substring(0, 10)}...`); // Show only prefix for security
   console.log(`   Expires: ${new Date(userViewKey.expiry).toISOString()}`);
   
-  // 4. Encrypt the transfer data with the view key
+  // ========== STEP 4: ENCRYPT TRANSACTION DATA ==========
+  
+  /**
+   * Encrypt the transaction data with the view key
+   * 
+   * PRIVACY IMPLEMENTATION:
+   * This demonstrates how private transaction data would be:
+   * 1. Encrypted before leaving the secure environment
+   * 2. Stored off-chain in an encrypted database
+   * 3. Only accessible to those with the correct view key
+   * 
+   * In a real system, this encrypted data would be:
+   * - Stored in a secure database with access controls
+   * - Indexed by the commitment hash for retrieval
+   * - Never exposed publicly without proper authentication
+   */
   console.log("\n4️⃣ ENCRYPTING TRANSFER DATA WITH VIEW KEY");
   const encryptedData = encryptData(transferPayload, userViewKey.viewKey);
   console.log(`   Encrypted payload: ${encryptedData.substring(0, 40)}...`);
   console.log("   This encrypted data would be stored off-chain in a real implementation");
   
-  // 5. Generate and submit commitment to Sepolia
+  // ========== STEP 5: GENERATE & SUBMIT COMMITMENT ==========
+  
+  /**
+   * Generate a cryptographic commitment and submit to Sepolia
+   * 
+   * THIS IS THE CORE PRIVACY MECHANISM:
+   * The commitment is the ONLY data that goes on-chain. It represents the
+   * transaction in a way that:
+   * 1. Uniquely corresponds to the specific transaction
+   * 2. Cannot be reversed to derive the original transaction details
+   * 3. Can be verified later with the original details (if disclosed)
+   * 
+   * TECHNICAL IMPLEMENTATION:
+   * 1. ABI-encode the transaction data in a standardized format
+   * 2. Hash with keccak256 to produce a deterministic, non-reversible commitment
+   * 3. Submit only this commitment hash to the blockchain
+   */
   console.log("\n5️⃣ SUBMITTING COMMITMENT TO SEPOLIA BLOCKCHAIN");
+  
+  // Generate the commitment using the same process as in test-sepolia.js
   const abiCoder = ethers.utils.defaultAbiCoder;
   const encoded = abiCoder.encode(
     ["address", "address", "uint256", "uint256"],
@@ -209,30 +487,72 @@ async function main() {
   const commitment = ethers.utils.keccak256(encoded);
   console.log(`   Generated commitment: ${commitment}`);
   
-  // Submit the transaction to Sepolia
+  /**
+   * Submit the commitment to the Sepolia blockchain
+   * 
+   * PRIVACY GUARANTEE:
+   * - Only the commitment hash is sent to the blockchain
+   * - Original transaction details never leave this script
+   * - No information about sender, recipient, or amount is exposed on-chain
+   */
   console.log("   Sending transaction to Sepolia...");
   const tx = await vault.submitTransfer(commitment);
   console.log(`   Transaction hash: ${tx.hash}`);
   console.log(`   View on Etherscan: https://sepolia.etherscan.io/tx/${tx.hash}`);
   
-  // Wait for transaction confirmation
+  /**
+   * Wait for blockchain confirmation
+   * This ensures the commitment is successfully recorded on Sepolia
+   * 
+   * BLOCKCHAIN RECORD:
+   * - The transaction shows up as "PrivateTransfer" on Etherscan
+   * - Only the commitment hash is visible on-chain
+   * - To observers, it's impossible to determine transaction details
+   */
   console.log("   Waiting for transaction confirmation...");
   const receipt = await tx.wait();
   console.log(`   ✅ Transaction confirmed in block #${receipt.blockNumber}`);
   
-  // 6. Simulate access with view key
+  // ========== STEP 6: DEMONSTRATE VIEW KEY ACCESS CONTROL ==========
+  
+  /**
+   * Demonstrate the view key selective disclosure mechanism
+   * 
+   * PRIVACY MODEL DEMONSTRATED:
+   * This shows how selective disclosure works to enable:
+   * 1. Authorized parties to access transaction details
+   * 2. Unauthorized parties to be denied access
+   * 3. Secure, controlled visibility of private data
+   * 
+   * REAL-WORLD USE CASES:
+   * - Regulatory compliance (give regulators selective access)
+   * - Financial audits (grant auditors temporary access)
+   * - User account statements (allow users to see their own transactions)
+   * - Legal proceedings (provide court-ordered disclosure)
+   */
   console.log("\n6️⃣ DEMONSTRATING VIEW KEY ACCESS");
   
-  // Try valid view key
+  /**
+   * TEST CASE 1: AUTHORIZED ACCESS
+   * 
+   * This simulates an authorized party (e.g., regulator, auditor)
+   * with the correct view key attempting to access transaction details
+   */
   console.log("   Attempting decryption with valid view key:");
   try {
+    // Attempt decryption with the correct view key
     const result = decryptWithViewKey(
-      encryptedData,
-      userViewKey.viewKey,
-      userViewKey
+      encryptedData,            // The encrypted transaction data
+      userViewKey.viewKey,      // The correct view key
+      userViewKey               // The view key metadata for validation
     );
+    
+    // Success case - authorized access granted
     console.log("   ✅ Decryption successful!");
     console.log(`   Decrypted at: ${result.decryptedAt}`);
+    
+    // Display the accessed private transaction details
+    // In production, this would be logged for audit purposes
     console.log(`   Transaction details:`);
     console.log(`   - From: ${result.decryptedData.sender}`);
     console.log(`   - To: ${result.decryptedData.recipient}`);
@@ -241,34 +561,74 @@ async function main() {
     console.log(`   ❌ Decryption failed: ${error.message}`);
   }
   
-  // Try invalid view key
+  /**
+   * TEST CASE 2: UNAUTHORIZED ACCESS
+   * 
+   * This simulates an unauthorized party attempting to access
+   * transaction details with an incorrect or forged view key
+   */
   console.log("\n   Attempting decryption with invalid view key:");
   try {
+    // Generate a random invalid view key (simulating an attacker's attempt)
     const invalidViewKey = "0x" + crypto.randomBytes(32).toString("hex");
+    
+    // Attempt decryption with the invalid view key
     const result = decryptWithViewKey(
-      encryptedData,
-      invalidViewKey,
-      userViewKey
+      encryptedData,            // The encrypted transaction data
+      invalidViewKey,           // An incorrect/forged view key
+      userViewKey               // The valid view key metadata for comparison
     );
+    
+    // This should never execute - if it does, there's a security issue
     console.log("   Unexpected success - should have failed");
   } catch (error) {
+    // Expected case - access correctly denied
     console.log(`   ❌ Decryption failed: ${error.message} (as expected)`);
   }
   
+  /**
+   * Summary of privacy features demonstrated on Sepolia
+   * 
+   * This demonstrates the complete privacy architecture:
+   * 1. TEE for secure processing environment
+   * 2. Commitment-based privacy for on-chain transactions
+   * 3. View keys for selective disclosure
+   * 4. End-to-end privacy preservation
+   */
   console.log("\n✨ BONUS FEATURES SUMMARY:");
   console.log("1. Remote attestation ensures the relayer code integrity");
   console.log("2. View keys provide selective disclosure of private transaction data");
   console.log("3. Only commitments are visible on-chain (check Etherscan)");
   console.log("4. Actual transaction details can only be accessed with the correct view key");
   console.log("");
-  console.log(`View your transaction on Etherscan: https://sepolia.etherscan.io/tx/${tx.hash}`);
+  
+  /**
+   * Final verification instructions
+   * 
+   * This allows manual verification that privacy is maintained on-chain
+   */
+  console.log(`🔍 PRIVACY VERIFICATION: View your transaction on Etherscan: https://sepolia.etherscan.io/tx/${tx.hash}`);
+  console.log("   Confirm that:");
+  console.log("   1. No sender address (beyond the relayer's) is visible");
+  console.log("   2. No recipient address is visible");
+  console.log("   3. No transfer amount is visible");
+  console.log("   4. Only the commitment hash appears in the event logs");
   console.log("");
 }
 
-// Execute the script
+/**
+ * Execute the main demonstration function
+ * 
+ * EXECUTION PATTERN:
+ * - Run the main async function to demonstrate privacy features
+ * - Handle successful completion with clean exit
+ * - Catch and report any errors during execution
+ * 
+ * This pattern ensures proper process termination and error reporting
+ */
 main()
-  .then(() => process.exit(0))
+  .then(() => process.exit(0))  // Exit cleanly on success
   .catch((error) => {
-    console.error("Error:", error);
-    process.exit(1);
+    console.error("Error:", error);  // Log detailed error message
+    process.exit(1);  // Exit with error code on failure
   });
