@@ -8,6 +8,7 @@
     "compile": "hardhat compile",
     "deploy:sepolia": "hardhat run scripts/deploy-sepolia.js --network sepolia",
     "test:sepolia": "hardhat run scripts/test-sepolia.js --network sepolia",
+    "bonus:sepolia": "hardhat run scripts/bonus-features-sepolia.js --network sepolia",
     "verify:sepolia": "hardhat verify --network sepolia"
   },
   "devDependencies": {
